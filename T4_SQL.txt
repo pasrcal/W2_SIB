@@ -1,0 +1,24 @@
+--Join (with inner join) together person, personphone, businessentity, and phonenumber type in the persons schema--
+--Return first name, middle name, last name, phone number, and the name of the phone number type--
+--Order by business entity id descending--
+select firstname, middlename, lastname, phonenumber, p3."name" as phonenumber_type from person p
+join personphone p2 on p.businessentityid = p2.businessentityid
+join phonenumbertype p3 on p2.phonenumbertypeid = p3.phonenumbertypeid
+order by businessentity desc;
+
+--Join product and productview in the schema table--
+--Include every record from product and any reviews they have--
+--Return the product name, review rating, and comments--
+--Order by rating in ascending order--
+select "name", rating,comments
+from production.product p 
+join production.productreview p2 on p.productid = p2.productid 
+order by p2.rating asc;
+
+--Use a right join combine workorder and product from production schema to bring back all products and any work orders they have--
+--Include the product name and workorder orderqty and scrappedqty fields--
+--Order by productid ascending--
+select "name", orderqty,scrappedqty
+from production.product p 
+right join production.workorder w on p.productid = w.productid 
+order by p.productid asc; 

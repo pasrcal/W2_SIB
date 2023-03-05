@@ -1,0 +1,60 @@
+--What is the number of products for each category (do it with joins)--
+select categoryname, count(distinct productid) as jumlah_produk
+from products p 
+join categories c on p.categoryid  = c.categoryid
+group by categoryname;
+
+--Total value of each product sold for year of 1997--
+select productname, sum(od.unitprice*quantity) as total_value
+from order_details od 
+join orders o on od.orderid = o.orderid 
+join products p on od.productid = p.productid 
+where extract (year from o.orderdate) = '1997'
+group by p.productname, o.orderdate ;
+
+--customers that have bought more than $5000 of products--
+select c.customerid, companyname, sum((1-discount)*(od.unitprice*quantity)) as jumlah_produk
+from customers c 
+join orders o on c.customerid = o.customerid  
+join order_details od on o.orderid = od.orderid 
+group by c.customerid, companyname
+having sum((1-discount)*(od.unitprice*quantity)) > 5000;
+
+--customers that have bought more than $5000 of products with order date in first six month--
+--of the year of 1997 (see the effect of where clause)--
+select c.customerid, companyname, sum((1-discount)*(od.unitprice*quantity)) as jumlah_produk
+from customers c 
+join orders o on c.customerid = o.customerid  
+join order_details od on o.orderid = od.orderid 
+where o.orderdate between '1997-01-01' and '1997-06-30'
+group by c.customerid, companyname
+having sum((1-discount)*(od.unitprice*quantity)) > 5000;
+
+--find total sales by both customer's companyname renamed as buyer and--
+--supplier's company name renamed as supplier and--
+--order by buyer and supplier--
+select c.companyname as buyer, s.companyname as supplier, sum((1-discount)*(od.unitprice*quantity)) as jumlah
+from customers c 
+join orders o on o.customerid = c.customerid 
+join order_details od on od.orderid = o.orderid
+join products p on p.productid = od.productid
+join suppliers s on s.supplierid = p.supplierid
+group by grouping sets ((c.companyname,s.companyname));
+
+--do a rollup of suppliers, products, and customers--
+select c.companyname as buyer, s.companyname as supplier, sum((1-discount)*(od.unitprice*quantity)) as jumlah
+from customers c 
+join orders o on o.customerid = c.customerid 
+join order_details od on od.orderid = o.orderid
+join products p on p.productid = od.productid
+join suppliers s on s.supplierid = p.supplierid
+group by rollup(s.companyname, p.productname, c.companyname);
+
+--Do a cube of total sales by suppliers, products, and customers--
+select c.companyname as buyer, s.companyname as supplier, sum((1-discount)*(od.unitprice*quantity)) as jumlah
+from customers c 
+join orders o on o.customerid = c.customerid 
+join order_details od on od.orderid = o.orderid
+join products p on p.productid = od.productid
+join suppliers s on s.supplierid = p.supplierid
+group by cube(s.companyname, p.productname, c.companyname);

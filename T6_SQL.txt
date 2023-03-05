@@ -1,0 +1,47 @@
+--1. How would find customers who didn't have an order in April, 1997--
+select c.customerid, c.companyname, o.orderdate 
+    from customers c 
+    join orders o on c.customerid = o.customerid 
+    where not exists (select o.customerid from orders o2 
+                      where customerid = c.customerid and
+                      o.orderdate between '1997-04-01' and '1997-04-30')
+    group by c.customerid, o.orderdate 
+    order by o.orderdate;
+
+--2. Find all suppliers that have an order with 1 item--
+select s.companyname
+from suppliers s 
+where exists (select p.productid from products p 
+join order_details od on p.productid = od.productid 
+where p.supplierid = s.supplierid
+and od.quantity = 1)
+order by s.companyname 
+
+--3. Find all distinct customers that ordered more in one item than the average--
+--order amount per item of all customers--
+select c.companyname, sum(od.quantity) as total_order
+from customers c 
+join orders o on c.customerid = o.customerid 
+join order_details od on o.orderid = od.orderid 
+group by c.companyname 
+having sum(od.quantity) > (select avg(quantity) from order_details od2)
+order by total_order;
+
+--4. Find all suppliers that are in the same city as customer--
+select s.companyname, c.companyname, s.city 
+from customers c  
+join orders o on c.customerid = o.customerid  
+join order_details od on o.orderid = od.orderid
+join products p on od.productid = p.productid 
+join suppliers s on p.supplierid = s.supplierid 
+where s.city = c.city;
+
+--5. Find all suppliers that are in the same city as customer (using CTE)--
+with all_suppliers as (select s.companyname, c.companyname, s.city 
+from customers c  
+join orders o on c.customerid = o.customerid  
+join order_details od on o.orderid = od.orderid
+join products p on od.productid = p.productid 
+join suppliers s on p.supplierid = s.supplierid 
+where s.city = c.city)
+select * from all_suppliers;
